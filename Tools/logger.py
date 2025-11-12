@@ -21,7 +21,7 @@ class Logger():
     "打印日志"
     def log(self, name):
         # 配置日志
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(name)
         self.logger.setLevel(logging.DEBUG)
 
         # ===== 文件处理器（输出到文件，无颜色）=====

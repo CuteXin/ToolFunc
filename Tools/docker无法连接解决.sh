@@ -1,3 +1,5 @@
+# 方案为修改docker源为镜像源（如果服务名称不为docker.service, 则替换docker.service
+
 # 确保有docker路径
 mkdir -p /etc/docker
 # 重置docker服务状态
@@ -29,3 +31,7 @@ systemctl daemon-reload
 systemctl restart docker.service
 # 检查状态
 systemctl status docker.service
+
+#恢复原设置（卸载以上配置
+rm /etc/docker/daemon.json
+systemctl restart docker.service

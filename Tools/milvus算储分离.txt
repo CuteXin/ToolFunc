@@ -1,0 +1,43 @@
+部署minio部分: 
+直接部署minio
+创建秘钥并给秘钥分配对应桶的权限
+桶权限示例代码:
+```
+{
+ "Version": "2012-10-17",
+ "Statement": [
+  {
+   "Effect": "Allow",
+   "Action": [
+    "s3:*"
+   ],
+   "Resource": [
+    "arn:aws:s3:::替换为桶名称",
+    "arn:aws:s3:::替换为桶名称/*"
+   ]
+  }
+ ]
+}
+```
+
+部署milvus部分: 
+https://milvus.io/docs/zh/configure-docker.md?tab=component
+下载页面的配置文件和安装文件并放在同一个文件夹下
+配置文件: https://raw.githubusercontent.com/milvus-io/milvus/v2.6.7/configs/milvus.yaml
+安装文件: https://github.com/milvus-io/milvus/releases/download/v2.6.7/milvus-standalone-docker-compose.yml
+安装文件注释掉关于minio容器的配置,包括:
+ - minio容器配置块
+ - MINIO_ADDRESS
+ - depends_on.minio
+添加volumes配置
+ - ${DOCKER_VOLUME_DIRECTORY:-.}/milvus.yaml:/milvus/configs/milvus.yaml
+将minio所有配置写入milvus.yaml文件
+示例: 
+ - address: 192.168.1.2:9000
+ - port: 9000(此处的两个端口都不是web端口而是api连接端口)
+ - accessKeyID: 秘钥账户
+ - secretAccessKey: 密钥密码
+ - bucketName: 桶名称
+ - rootPath: files(根目录，保持默认即可)
+启动: docker compose up -d
+现在你可以在你的minio中看到创建的一些文件 这代表部署成功

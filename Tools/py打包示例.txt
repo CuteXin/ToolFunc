@@ -1,3 +1,4 @@
+可能需要vs installer来安装msvc生成工具
 uv run nuitka .\main.py --standalone --plugin-enable=pyside6 --onefile
 Inno Setup Compiler
 https://jrsoftware.org/files/istrans/ -> C:\Program Files (x86)\Inno Setup 6\Languages\

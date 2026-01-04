@@ -11,28 +11,51 @@
 log_path    = "./log/"#日志文件目录
 #-----写入日志-----#
 import logging
-from datetime import datetime
+from datetime import date
 import os
 
 if not os.path.exists(log_path):
     os.makedirs(log_path)
 
-class Logger():
-    "打印日志"
-    def log(self, name):
-        # 配置日志
-        self.logger = logging.getLogger(name)
-        self.logger.setLevel(logging.DEBUG)
+class AutoSplitFileHandler(logging.Handler):
+    """
+    每次写日志时自动按日期切文件的 Handler
+    """
+    def __init__(self, name: str, encoding="utf-8"):
+        super().__init__()
+        self.base_name = name
+        self.encoding  = encoding
+        self.current_date = None
+        self._inner_handler = None          # 真正的 FileHandler
+        self._reset_if_needed()             # 初始化当天文件
 
-        # ===== 文件处理器（输出到文件，无颜色）=====
-        file_handler = logging.FileHandler(f'{log_path}/{name}_{datetime.now().strftime('%Y-%m-%d')}.log', encoding='utf-8')
-        file_handler.setLevel(logging.DEBUG)
+    # ---------- 内部：检测日期并重建 FileHandler ----------
+    def _reset_if_needed(self):
+        today = date.today()
+        if self.current_date == today:
+            return                          # 仍是同一天，什么都不做
 
-        # 文件日志格式化器（包含线程名、文件名和行号）
-        file_formatter = logging.Formatter(
+        # 关闭旧 handler（如果有）
+        if self._inner_handler:
+            self._inner_handler.close()
+
+        # 新文件路径  name_2025-01-05.log
+        new_path = os.path.join(log_path,
+                                f"{self.base_name}_{today.strftime('%Y-%m-%d')}.log")
+        self._inner_handler = logging.FileHandler(new_path, encoding=self.encoding)
+        self._inner_handler.setFormatter(logging.Formatter(
             '%(asctime)s [%(levelname)s] [%(threadName)s] %(filename)s:%(lineno)d - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
-        )
-        file_handler.setFormatter(file_formatter)
-        self.logger.addHandler(file_handler)
-        return self.logger
+            datefmt='%Y-%m-%d %H:%M:%S'))
+        self.current_date = today
+
+    # ---------- 每次日志写入都会先走这里 ----------
+    def emit(self, record):
+        self._reset_if_needed()             # 自动检测+切换
+        self._inner_handler.emit(record)    # 把日志写到真正的文件
+
+class logger:
+    def log(self, name: str) -> logging.Logger:
+        logger = logging.getLogger(name)
+        logger.setLevel(logging.DEBUG)
+        logger.addHandler(AutoSplitFileHandler(name))
+        return logger

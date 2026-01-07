@@ -1,6 +1,39 @@
 部署minio部分: 
-直接部署minio
-创建秘钥并给秘钥分配对应桶的权限
+新建文件: docker-compose.yml
+填写以下内容:
+```
+version: "3.8"
+
+services:
+  minio:
+    image: minio/minio:RELEASE.2025-04-22T22-12-26Z
+    container_name: minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    ports:
+      # S3 API
+      - "9000:9000"
+      # Web 控制台
+      - "9001:9001"
+    environment:
+      # 自定义 root 用户名（最少 3 字符）
+      MINIO_ROOT_USER: minioadmin
+      # 自定义 root 密码（最少 8 字符）
+      MINIO_ROOT_PASSWORD: minioadmin
+      # 时区（可选）
+      TZ: Asia/Shanghai
+    volumes:
+      # 把容器内 /data 映射到本地目录，数据落盘至此
+      - ./minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 10s
+```
+
+创建秘钥并给秘钥分配对应桶的权限且设置捅为公开(创建账户的时候直接给就不需要设置下方的配置文件)
 桶权限示例代码:
 ```
 {

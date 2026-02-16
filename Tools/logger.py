@@ -53,7 +53,7 @@ class AutoSplitFileHandler(logging.Handler):
         self._reset_if_needed()             # 自动检测+切换
         self._inner_handler.emit(record)    # 把日志写到真正的文件
 
-class logger:
+class Logger:
     def log(self, name: str) -> logging.Logger:
         logger = logging.getLogger(name)
         logger.setLevel(logging.DEBUG)
